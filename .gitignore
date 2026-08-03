@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# MATLAB
+*.mlappinstall
+
+# ROS2 build
+build/
+install/
+log/
+
+# 地图/环境临时
+*.pgm
+*.yaml
+*~
