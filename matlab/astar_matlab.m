@@ -17,11 +17,11 @@ function astar_matlab()
     grid(2:18, 13) = 1;     % 第二道竖墙
     grid(15, 13:18) = 1;    % 底部墙
 
-    % 转占用地图
-    map = binaryOccupancyMap(~grid, 1);  % 1 cell/m
+    % 转占用地图（0=空地→false, 1=障碍→true）
+    map = binaryOccupancyMap(grid == 1, 1);  % 障碍=1
 
-    start = [1.5, 1.5];
-    goal = [18.5, 18.5];
+    start = [2, 2];
+    goal = [18, 18];
 
     %% 方式1：手写 A*（理解原理）
     disp('=== 手写 A* ===');
@@ -54,8 +54,8 @@ function astar_matlab()
     plot(18, 18, 'ro', 'MarkerSize', 12);
     title('手写 A*');
 
-    saveas(gcf, 'matlab/astar_comparison.png');
-    disp('对比图已保存: matlab/astar_comparison.png');
+    saveas(gcf, 'C:\Users\qixiaoyang\vla-roadmap\path-planning\results\astar_comparison.png');
+    disp('对比图已保存: results/astar_comparison.png');
 end
 
 %% 手写 A*（MATLAB 版，与 Python 版逻辑一致）
