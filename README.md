@@ -9,8 +9,8 @@
 |---|---|
 | **手写算法库** | A\* / RRT\* / DWA（可独立运行）|
 | **MATLAB 对比** | 同一算法三实现验证 |
-| **知识体系** | 6 篇（算法→体系→应用）|
-| **巡检导航** | TurtleBot3 + Nav2（Ubuntu 完善）|
+| **知识体系** | 7 篇（算法→体系→应用）|
+| **巡检导航** | Gazebo 建图 → Nav2 导航全流程跑通（Ubuntu）|
 
 ![三算法演示](results/algorithms_demo.png)
 
@@ -40,6 +40,8 @@ path-planning/
 ├── robot/               # TurtleBot3 巡检项目
 │   ├── start_slam.sh    # SLAM 建图启动（正确时序）
 │   ├── auto_explore.py  # 自动建图（移动轨迹）
+│   ├── explore_laser.py # 激光自主探索建图（新增）
+│   ├── nav_goal.py      # Nav2 目标导航脚本（新增）
 │   └── save_map.py      # Python 保存地图
 ├── docs/                # 知识体系（算法→体系→应用）
 │   ├── 01-路径规划基础与体系
@@ -47,10 +49,11 @@ path-planning/
 │   ├── 03-局部规划算法
 │   ├── 04-SLAM建图与定位
 │   ├── 05-导航系统闭环与部署
-│   └── 06-MATLAB科研验证实战
+│   ├── 06-MATLAB科研验证实战
+│   └── 07-ROS2仿真实战（Gazebo→SLAM→Nav2）
 ├── tests/               # 算法测试（A*/RRT*/DWA）
 ├── exploration/         # 探索应用（动态障碍/性能基准）
-└── results/             # 成果图
+└── results/             # 成果图（含建图/导航素材）
 ```
 
 ## ✅ 已完成的成果
@@ -100,20 +103,28 @@ result = plan(planner, start, goal)  # 统一调用
 ### 3. 巡检导航（TurtleBot3 + Nav2）
 - ✅ 环境搭建（Gazebo + TurtleBot3 + Nav2）
 - ✅ SLAM 建图流程（Cartographer + 自动移动建图）
-- 🔄 Nav2 完整导航（WSL 环境攻坚中）
+- ✅ Nav2 完整导航（Ubuntu 仿真跑通，自主到达目标点）
 
-### 4. 知识体系（6 篇，算法→体系→应用）
+**仿真验证**（Gazebo 建图 → Nav2 导航全流程，详见 [07-ROS2仿真实战](docs/07-ROS2仿真实战.md)）：
+- 建图结果：![room_map](results/room_map.png)
+- 导航截图：![nav2](results/nav2_navigation.png)
+- 导航视频：[nav_demo.mp4](results/nav_demo.mp4)（75s，1080p）
+- **实测**：`(0.03,-0.84) → (1.5,1.5)` 与 `(1.5,1.5) → (-1.5,-1.5)` 均自主到达 ✅
+- **踩坑收获**：解决 3 处 ROS2 QoS 兼容性（雷达 BEST_EFFORT / 初始位姿订阅）
+
+### 4. 知识体系（7 篇，算法→体系→应用）
 - 01 基础与体系（导航系统全景）
 - 02 全局规划（A*/RRT 原理与对比）
 - 03 局部规划（DWA 实时避障）
 - 04 SLAM 建图与定位（AMCL）
 - 05 导航闭环（MATLAB vs 实际部署）
 - 06 MATLAB 科研实战（A* 对比详解）
+- 07 ROS2 仿真实战（Gazebo 建图 → Nav2 导航 + QoS 踩坑）
 
 ## 🔄 进行中 / 待完善
 
-- Nav2 完整导航（建议在 Ubuntu 原生环境跑，WSL 有 Gazebo/DDS 限制）
-- 探索应用：手写算法替换 Nav2 规划器
+- 手写算法替换 Nav2 规划器（插件化接入，探索应用）
+- 手写算法 vs Nav2 量化对比（路径长度/耗时/成功率）
 - 小车控制板 PCB（硬件分支，见规划）
 
 ## 📚 文档导航

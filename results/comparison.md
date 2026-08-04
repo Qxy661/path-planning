@@ -1,6 +1,7 @@
 # 算法对比基准
 
 > 实测数据（2026-08-04）。同一场景下 A* 与 RRT* 的性能对比。
+> 附：手写算法 vs Nav2 系统对比。
 
 ## 对比结果
 
@@ -20,8 +21,27 @@
 - 耗时差 79 倍：A* 1.9ms vs RRT* 150ms
 - 路径长度相近（都是 27 步），但 A* 保证最优
 
+## 手写算法 vs Nav2（仿真实测）
+
+> ROS2 仿真（Gazebo + Nav2），详见 [07-ROS2仿真实战](../docs/07-ROS2仿真实战.md)。
+
+| 维度 | 手写库（本项目） | Nav2 |
+|---|---|---|
+| 全局规划 | A* / RRT* / Informed RRT* | NavFn / Smac Planner |
+| 局部规划 | DWA | DWB / Regulated Pure Pursuit |
+| 定位 | ✗（假设已知位姿） | ✓ AMCL 概率定位 |
+| 建图 | ✗（输入固定地图） | ✓ Cartographer SLAM |
+| 接口 | 统一 `create_planner` | ROS2 Action（`NavigateToPose`） |
+| 场景 | 20×20 静态栅格（Python） | 迷宫世界（Gazebo 仿真） |
+| 产出 | 路径 + 可视化 | 定位 → 规划 → 避障 → 到达 |
+
+**实测导航**：`(0.03,-0.84) → (1.5,1.5)` 与 `(1.5,1.5) → (-1.5,-1.5)` 均自主到达 ✅
+
+**意义**：手写算法证明**原理理解**，Nav2 证明**系统集成**能力，二者互补构成完整导航能力链。
+
 ## 复现
 
 ```bash
-python exploration/compare_benchmark.py
+python exploration/compare_benchmark.py    # 手写算法对比
+python robot/nav_goal.py 1.5 1.5           # Nav2 仿真导航
 ```
