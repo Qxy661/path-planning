@@ -60,7 +60,15 @@ path-planning/
 |---|---|---|
 | **A\*** | 图搜索全局规划 | ✅ 含平滑、启发式效率统计 |
 | **RRT\*** | 采样全局规划 | ✅ rewiring 渐近最优 |
+| **Informed RRT\*** | 采样全局规划（前沿）| ✅ 椭圆采样加速最优 |
 | **DWA** | 局部规划 | ✅ 实时避障 |
+
+**统一接口**（`algorithms/planner.py`）：
+```python
+from planner import create_planner, plan
+planner = create_planner("astar", grid=grid)
+result = plan(planner, start, goal)  # 统一调用
+```
 
 **实测**（`results/algorithms_demo.png`）：
 - A* 20x20 地图访问 42 节点找到路径（定向搜索高效）
