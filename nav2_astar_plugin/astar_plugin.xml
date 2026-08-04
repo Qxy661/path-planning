@@ -1,0 +1,7 @@
+<library path="astar_planner_core">
+  <class name="astar_nav2_plugin/AstarPlanner"
+         type="astar_nav2_plugin::AstarPlanner"
+         base_class_type="nav2_core::GlobalPlanner">
+    <description>手写 A* 全局规划器（图搜索，8 邻域，保证最优）</description>
+  </class>
+</library>

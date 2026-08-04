@@ -10,8 +10,9 @@
 | **手写算法库** | A\* / RRT\* / Informed RRT\* / DWA（可独立运行）|
 | **算法测试** | 15 个测试全部通过 |
 | **MATLAB 对比** | 同一算法三实现交叉验证 |
-| **知识体系** | 7 篇（算法→体系→应用）|
+| **知识体系** | 8 篇（算法→体系→应用）|
 | **仿真验证** | Gazebo 建图 → Nav2 导航全流程跑通（Ubuntu）|
+| **A\* Nav2 插件** | 手写 A* 集成 Nav2 全局规划器（插件化，158 次规划 96.8% 成功）|
 
 ![四算法对比演示](results/all_algorithms.png)
 
@@ -52,6 +53,9 @@ path-planning/
 │   ├── 05-导航系统闭环与部署
 │   ├── 06-MATLAB科研验证实战
 │   └── 07-ROS2仿真实战（Gazebo→SLAM→Nav2）
+├── nav2_astar_plugin/   # 手写 A* 的 Nav2 全局规划插件（C++，可构建）
+│   ├── src/astar_planner.cpp   # 手写 A* 全局规划器
+│   └── astar_plugin.xml        # pluginlib 插件描述
 ├── tests/               # 算法测试（A*/RRT*/DWA）
 ├── exploration/         # 探索应用（动态障碍/性能基准）
 └── results/             # 成果图（含建图/导航素材）
@@ -113,7 +117,16 @@ result = plan(planner, start, goal)  # 统一调用
 - **实测**：`(0.03,-0.84) → (1.5,1.5)` 与 `(1.5,1.5) → (-1.5,-1.5)` 均自主到达 ✅
 - **踩坑收获**：解决 3 处 ROS2 QoS 兼容性（雷达 BEST_EFFORT / 初始位姿订阅）
 
-### 7. 知识体系（7 篇，算法→体系→应用）
+### 7. 手写算法集成 Nav2 插件（研究验证的最强模式）
+
+> 深度调研（2026-08）确认这是作品集可信度最高的模式，详见 [08-手写算法集成Nav2插件](docs/08-手写算法集成Nav2插件.md)。
+
+- ✅ 手写 A* 通过 `nav2_core::GlobalPlanner` + pluginlib 成为 **Nav2 官方全局规划器**
+- ✅ 配置即切换：`nav2_astar_params.yaml` 改一行即可切换默认/手写规划器
+- ✅ **实测 158 次规划、96.8% 成功率**，驱动小车跨越迷宫
+- 参考实现：TurtleBot-RRT-Star / nav2_dijkstra_planner 等（调研引用）
+
+### 8. 知识体系（8 篇，算法→体系→应用）
 - 01 基础与体系（导航系统全景）
 - 02 全局规划（A*/RRT 原理与对比）
 - 03 局部规划（DWA 实时避障）
@@ -121,6 +134,7 @@ result = plan(planner, start, goal)  # 统一调用
 - 05 导航闭环（MATLAB vs 实际部署）
 - 06 MATLAB 科研实战（A* 对比详解）
 - 07 ROS2 仿真实战（Gazebo 建图 → Nav2 导航 + QoS 踩坑）
+- 08 手写算法集成 Nav2 插件（A* 全局规划器）
 
 ## 🚀 快速开始
 
@@ -139,12 +153,20 @@ python robot/explore_laser.py 90                                                
 ros2 run nav2_map_server map_saver_cli -f ~/map/room                                      # ④ 保存地图
 ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=~/map/room.yaml use_sim_time:=True  # ⑤ Nav2 导航
 python robot/nav_goal.py 1.5 1.5                                                          # ⑥ 自主导航到目标
+python robot/nav_goal.py --patrol "1.5,1.5;-1.5,-1.5;1.5,-1.5"                            # ⑦ 多目标巡检
+```
+
+**手写 A\* 作为 Nav2 全局规划器**（详见 [08-手写算法集成Nav2插件](docs/08-手写算法集成Nav2插件.md)）：
+```bash
+cd nav2_astar_plugin && colcon build --packages-select astar_nav2_plugin && source install/setup.bash
+ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=~/map/room.yaml \
+  params_file:=robot/config/nav2_astar_params.yaml use_sim_time:=True                      # 用 A* 插件导航
 ```
 
 ## 🔄 进行中 / 待完善
 
-- 手写算法替换 Nav2 规划器（插件化接入，探索应用）
-- 手写算法 vs Nav2 量化对比（路径长度/耗时/成功率）
+- 前沿探索自主建图（frontier-based，接入 Nav2）
+- 局部规划器对比（DWA / TEB / MPPI 在动态障碍场景）
 - 小车控制板 PCB（硬件分支，见规划）
 
 ## 📚 文档导航
@@ -158,6 +180,7 @@ python robot/nav_goal.py 1.5 1.5                                                
 | [05-导航系统闭环与部署](docs/05-导航系统闭环与部署.md) | MATLAB vs 实际部署 |
 | [06-MATLAB科研验证实战](docs/06-MATLAB科研验证实战.md) | A\* 对比详解 |
 | [07-ROS2仿真实战](docs/07-ROS2仿真实战.md) | Gazebo 建图 → Nav2 导航 |
+| [08-手写算法集成Nav2插件](docs/08-手写算法集成Nav2插件.md) | A\* 全局规划器插件化 |
 | [算法对比基准](results/comparison.md) | 手写算法 vs Nav2 量化对比 |
 
 ## License
