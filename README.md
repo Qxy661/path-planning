@@ -7,12 +7,13 @@
 
 | 项 | 结果 |
 |---|---|
-| **手写算法库** | A\* / RRT\* / DWA（可独立运行）|
-| **MATLAB 对比** | 同一算法三实现验证 |
+| **手写算法库** | A\* / RRT\* / Informed RRT\* / DWA（可独立运行）|
+| **算法测试** | 15 个测试全部通过 |
+| **MATLAB 对比** | 同一算法三实现交叉验证 |
 | **知识体系** | 7 篇（算法→体系→应用）|
-| **巡检导航** | Gazebo 建图 → Nav2 导航全流程跑通（Ubuntu）|
+| **仿真验证** | Gazebo 建图 → Nav2 导航全流程跑通（Ubuntu）|
 
-![三算法演示](results/algorithms_demo.png)
+![四算法对比演示](results/all_algorithms.png)
 
 ## 🎯 核心方法论
 
@@ -79,7 +80,7 @@ result = plan(planner, start, goal)  # 统一调用
 - DWA 实时避障到达目标
 
 ### 2. 算法测试（可靠性验证）
-**11 个测试全通过**（`tests/`）：
+**15 个测试全通过**（`tests/`）：
 - A*：找路径/无路径/最优性/高效性/平滑
 - RRT*：找路径/达目标/无碰撞
 - DWA：到达目标/避障/输出合理
@@ -100,7 +101,7 @@ result = plan(planner, start, goal)  # 统一调用
 - 手写 A*（324 节点）+ Navigation Toolbox（plannerAStarGrid）
 - **科研意义**：三种实现（Python/MATLAB/Toolbox）交叉验证
 
-### 3. 巡检导航（TurtleBot3 + Nav2）
+### 6. 巡检导航（TurtleBot3 + Nav2 仿真）
 - ✅ 环境搭建（Gazebo + TurtleBot3 + Nav2）
 - ✅ SLAM 建图流程（Cartographer + 自动移动建图）
 - ✅ Nav2 完整导航（Ubuntu 仿真跑通，自主到达目标点）
@@ -112,7 +113,7 @@ result = plan(planner, start, goal)  # 统一调用
 - **实测**：`(0.03,-0.84) → (1.5,1.5)` 与 `(1.5,1.5) → (-1.5,-1.5)` 均自主到达 ✅
 - **踩坑收获**：解决 3 处 ROS2 QoS 兼容性（雷达 BEST_EFFORT / 初始位姿订阅）
 
-### 4. 知识体系（7 篇，算法→体系→应用）
+### 7. 知识体系（7 篇，算法→体系→应用）
 - 01 基础与体系（导航系统全景）
 - 02 全局规划（A*/RRT 原理与对比）
 - 03 局部规划（DWA 实时避障）
@@ -120,6 +121,25 @@ result = plan(planner, start, goal)  # 统一调用
 - 05 导航闭环（MATLAB vs 实际部署）
 - 06 MATLAB 科研实战（A* 对比详解）
 - 07 ROS2 仿真实战（Gazebo 建图 → Nav2 导航 + QoS 踩坑）
+
+## 🚀 快速开始
+
+**算法演示**（纯 Python，无需 ROS）：
+```bash
+pip install -r requirements.txt
+python algorithms/demo_all_algorithms.py   # 四算法对比可视化
+python -m pytest tests/ -q -p no:anyio     # 15 个测试
+```
+
+**仿真验证**（Ubuntu 22.04 + ROS2 Humble，详见 [07-ROS2仿真实战](docs/07-ROS2仿真实战.md)）：
+```bash
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py                                  # ① Gazebo 世界
+ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=True             # ② Cartographer 建图
+python robot/explore_laser.py 90                                                          # ③ 自动探索（激光避障）
+ros2 run nav2_map_server map_saver_cli -f ~/map/room                                      # ④ 保存地图
+ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=~/map/room.yaml use_sim_time:=True  # ⑤ Nav2 导航
+python robot/nav_goal.py 1.5 1.5                                                          # ⑥ 自主导航到目标
+```
 
 ## 🔄 进行中 / 待完善
 
@@ -131,9 +151,14 @@ result = plan(planner, start, goal)  # 统一调用
 
 | 文档 | 内容 |
 |---|---|
-| [作品集方案](references/m5-作品集方案.md) | 调研确认的完整方案 |
-| [知识图谱](references/m5-路径规划知识图谱.md) | 三层认知框架 |
-| [PCB 全景蓝图](references/m5-pcb全景蓝图.md) | 硬件分支规划 |
+| [01-路径规划基础与体系](docs/01-路径规划基础与体系.md) | 导航系统全景 |
+| [02-全局规划算法](docs/02-全局规划算法.md) | A\* / RRT 原理与对比 |
+| [03-局部规划算法](docs/03-局部规划算法.md) | DWA 实时避障 |
+| [04-SLAM建图与定位](docs/04-SLAM建图与定位.md) | AMCL 定位原理 |
+| [05-导航系统闭环与部署](docs/05-导航系统闭环与部署.md) | MATLAB vs 实际部署 |
+| [06-MATLAB科研验证实战](docs/06-MATLAB科研验证实战.md) | A\* 对比详解 |
+| [07-ROS2仿真实战](docs/07-ROS2仿真实战.md) | Gazebo 建图 → Nav2 导航 |
+| [算法对比基准](results/comparison.md) | 手写算法 vs Nav2 量化对比 |
 
 ## License
 
