@@ -32,7 +32,7 @@ class DWA:
         self.predict_time = predict_time
         self.obstacle_radius = obstacle_radius
         # 目标/障碍/速度 权重
-        self.w_goal = 0.5
+        self.w_goal = 1.5
         self.w_obstacle = 1.0
         self.w_heading = 0.3
         self.w_velocity = 0.2
@@ -120,9 +120,13 @@ class DWA:
             if obs_dist < self.obstacle_radius:  # 会碰撞，跳过
                 continue
 
-            # 三个目标代价
-            goal_cost = abs(self._heading_cost(state, goal))
+            # 目标代价：轨迹终点到目标距离（真正的目标引力）
+            traj_end = traj[-1]
+            goal_dist = np.hypot(traj_end[0] - goal[0], traj_end[1] - goal[1])
+            goal_cost = goal_dist
+            # 障碍代价：距离越近越差
             obstacle_cost = 1.0 / obs_dist if obs_dist > 0 else 1.0 / 0.01
+            # 朝向代价：车头与目标方向夹角
             heading_cost = self._heading_cost(state, goal)
             velocity_cost = abs(self.max_speed - vel_sample[0]) / self.max_speed
 

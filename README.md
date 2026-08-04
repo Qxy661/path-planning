@@ -48,6 +48,8 @@ path-planning/
 │   ├── 04-SLAM建图与定位
 │   ├── 05-导航系统闭环与部署
 │   └── 06-MATLAB科研验证实战
+├── tests/               # 算法测试（A*/RRT*/DWA）
+├── exploration/         # 探索应用（动态障碍/性能基准）
 └── results/             # 成果图
 ```
 
@@ -65,7 +67,25 @@ path-planning/
 - RRT* 采样探索渐近最优
 - DWA 实时避障到达目标
 
-### 2. MATLAB 科研验证（同一算法多实现对比）
+### 2. 算法测试（可靠性验证）
+**11 个测试全通过**（`tests/`）：
+- A*：找路径/无路径/最优性/高效性/平滑
+- RRT*：找路径/达目标/无碰撞
+- DWA：到达目标/避障/输出合理
+
+### 3. 算法对比基准（量化）
+| 算法 | 路径 | 节点 | 耗时 | 最优性 |
+|---|---|---|---|---|
+| **A\*** | 27步 | 299 | 1.9ms | 最优 |
+| **RRT\*** | 27步 | 179 | 150ms | 渐近最优 |
+
+详见 [results/comparison.md](results/comparison.md)
+
+### 4. 探索应用（前沿）
+- **动态障碍 RRT\***：3 场景复杂度递增（`results/rrt_dynamic.png`）
+- **性能基准**：A* vs RRT* 量化对比
+
+### 5. MATLAB 科研验证（同一算法多实现对比）
 - 手写 A*（324 节点）+ Navigation Toolbox（plannerAStarGrid）
 - **科研意义**：三种实现（Python/MATLAB/Toolbox）交叉验证
 
