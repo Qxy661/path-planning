@@ -1,20 +1,37 @@
-# Path Planning · 路径规划与导航 🗺️
+# 路径规划与导航：从手写算法到 Nav2 系统集成 🗺️
 
-> 从算法认知 → 体系认知 → 应用认知，真做导航的应用能力 + 科研能力。
-> 基于权威调研（LaValle《Planning Algorithms》、2024 综述、Nav2、MATLAB 科研角色）。
+> **一个"探究式 + 落地式"的路径规划项目**：不靠现成框架，先把 A\*/RRT\*/DWA 亲手写一遍、用测试和 MATLAB 验证，再在 ROS2 仿真里跑通「建图 → 定位 → 导航」全流程，最后把手写 A\* 直接插进 Nav2 当全局规划器——**从"会写算法"到"能进系统"**。
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![ROS2](https://img.shields.io/badge/ROS2-Humble-green.svg)](https://docs.ros.org/en/humble/)
+[![Python](https://img.shields.io/badge/Python-3.10-blue.svg)](https://www.python.org/)
+[![Nav2](https://img.shields.io/badge/Nav2-1.1-orange.svg)](https://docs.nav2.org/)
+
+---
+
+## 为什么做这个
+
+路径规划是机器人导航的"大脑"，但市面上最大的坑是：**能调 Nav2、能点目标点，却说不清 A\* 为什么比 BFS 快、RRT\* 的最优性从哪来**。本项目的思路是**自下而上、再由内向外**：
+
+1. **手写 ≠ 会用** — 先把 A\* / RRT\* / Informed RRT\* / DWA 从零实现，用 15 个测试锁死正确性，才知道每个算法"好吃在哪、短板在哪"
+2. **算法 ≠ 系统** — 会写算法只是纸上谈兵，真正的难点是把算法放进「建图 → 定位 → 全局 → 局部 → 控制」的完整系统里跑起来
+3. **科研严谨性** — 同一算法用 Python / MATLAB 手写 / Navigation Toolbox 三实现交叉验证，避免"自己写自己测"的自嗨
+4. **集成为王** — 深度调研（2026-08，104 个子任务）发现作品集可信度最高的证明是：**手写算法作为 Nav2 官方插件运行**——把 A\* 写进 C++ 插件，配置即切换，158 次规划 96.8% 成功
+
+> 一句话总结：**每一步都留证据**——测试通过率、MATLAB 对比图、仿真视频、插件规划日志，全部可复现。
 
 ## 🏆 成果
 
 | 项 | 结果 |
 |---|---|
-| **手写算法库** | A\* / RRT\* / Informed RRT\* / DWA（可独立运行）|
-| **算法测试** | 15 个测试全部通过 |
-| **MATLAB 对比** | 同一算法三实现交叉验证 |
+| **手写算法库** | A\* / RRT\* / Informed RRT\* / DWA（15 测试全通过）|
+| **MATLAB 科研** | 同一算法三实现交叉验证 |
 | **知识体系** | 8 篇（算法→体系→应用）|
-| **仿真验证** | Gazebo 建图 → Nav2 导航全流程跑通（Ubuntu）|
-| **A\* Nav2 插件** | 手写 A* 集成 Nav2 全局规划器（插件化，158 次规划 96.8% 成功）|
+| **仿真建图** | Gazebo + Cartographer 建迷宫地图 |
+| **自主导航** | Nav2 多目标巡检 3/3 到达（79s）|
+| **A\* Nav2 插件** ⭐ | 手写 A\* 成 Nav2 全局规划器，**158 次规划 96.8% 成功** |
 
-![四算法对比演示](results/all_algorithms.png)
+![四算法对比](results/all_algorithms.png)
 
 ## 🎯 核心方法论
 
@@ -23,47 +40,34 @@
   (知识)    (能力)        (严谨)          (落地)        (展示)
 ```
 
-**三层认知**：
-- **算法层**：A* / RRT* / DWA 原理与取舍
-- **体系层**：算法在导航系统的位置（建图→定位→全局→局部→控制）
-- **应用层**：MATLAB 仿真 vs ROS2 实际部署
+**我的三条个人方法论**：
+
+- **手写证明理解，集成证明能力** — 手写让"懂原理"可见，插件集成让"能落地"可见，缺一不可
+- **踩坑即学习** — 仿真实战解决了 3 处 ROS2 QoS 兼容性坑（雷达 BEST_EFFORT、初始位姿订阅、costmap origin 时序），每个坑都是别人踩不到的深度
+- **量化胜于描述** — 路径长度、耗时、成功率全部实测：A\* 3.6ms vs Nav2 系统级 58s，差距本身就是认知
 
 ## 📂 项目结构
 
 ```
 path-planning/
-├── algorithms/          # 手写算法库（Python）
-│   ├── astar.py         # 图搜索类全局规划（含平滑）
-│   ├── rrt_star.py      # 采样类全局规划（rewiring 渐近最优）
+├── algorithms/          # 手写算法库（Python，无第三方依赖）
+│   ├── astar.py         # 图搜索全局规划（含平滑）
+│   ├── rrt_star.py      # 采样全局规划（rewiring 渐近最优）
 │   ├── dwa.py           # 局部规划（实时避障）
-│   └── demo_all.py      # 三算法综合演示
-├── matlab/              # MATLAB 科研验证对比
-│   └── astar_matlab.m   # 手写 + Navigation Toolbox 对比
-├── robot/               # TurtleBot3 巡检项目
-│   ├── start_slam.sh    # SLAM 建图启动（正确时序）
-│   ├── auto_explore.py  # 自动建图（移动轨迹）
-│   ├── explore_laser.py # 激光自主探索建图（新增）
-│   ├── nav_goal.py      # Nav2 目标导航脚本（新增）
-│   └── save_map.py      # Python 保存地图
-├── docs/                # 知识体系（算法→体系→应用）
-│   ├── 01-路径规划基础与体系
-│   ├── 02-全局规划算法
-│   ├── 03-局部规划算法
-│   ├── 04-SLAM建图与定位
-│   ├── 05-导航系统闭环与部署
-│   ├── 06-MATLAB科研验证实战
-│   └── 07-ROS2仿真实战（Gazebo→SLAM→Nav2）
-├── nav2_astar_plugin/   # 手写 A* 的 Nav2 全局规划插件（C++，可构建）
-│   ├── src/astar_planner.cpp   # 手写 A* 全局规划器
-│   └── astar_plugin.xml        # pluginlib 插件描述
-├── tests/               # 算法测试（A*/RRT*/DWA）
-├── exploration/         # 探索应用（动态障碍/性能基准）
-└── results/             # 成果图（含建图/导航素材）
+│   └── planner.py       # 统一接口 create_planner
+├── nav2_astar_plugin/   # ⭐ 手写 A* 的 Nav2 全局规划插件（C++）
+├── robot/               # ROS2 仿真脚本（建图/探索/导航/巡检/指标）
+├── exploration/         # 探索应用（动态障碍/真实地图规划）
+├── matlab/              # 科研验证对比（Python/MATLAB/Toolbox）
+├── docs/                # 8 篇知识文档
+├── tests/               # 15 个算法测试
+└── results/             # 成果素材（图/视频/对比表）
 ```
 
-## ✅ 已完成的成果
+## ✅ 成果详解
 
 ### 1. 手写算法库（Python，可独立运行）
+
 | 算法 | 类 | 状态 |
 |---|---|---|
 | **A\*** | 图搜索全局规划 | ✅ 含平滑、启发式效率统计 |
@@ -71,102 +75,95 @@ path-planning/
 | **Informed RRT\*** | 采样全局规划（前沿）| ✅ 椭圆采样加速最优 |
 | **DWA** | 局部规划 | ✅ 实时避障 |
 
-**统一接口**（`algorithms/planner.py`）：
+**统一接口**（`algorithms/planner.py`）——让不同算法"一个入口"：
 ```python
 from planner import create_planner, plan
 planner = create_planner("astar", grid=grid)
 result = plan(planner, start, goal)  # 统一调用
 ```
 
-**实测**（`results/algorithms_demo.png`）：
-- A* 20x20 地图访问 42 节点找到路径（定向搜索高效）
-- RRT* 采样探索渐近最优
-- DWA 实时避障到达目标
+**实测**：A\* 20×20 地图只访问 42 节点就找到路径——**启发式的定向高效，就是"懂原理"的直观体现**。
 
-### 2. 算法测试（可靠性验证）
-**15 个测试全通过**（`tests/`）：
-- A*：找路径/无路径/最优性/高效性/平滑
-- RRT*：找路径/达目标/无碰撞
-- DWA：到达目标/避障/输出合理
+### 2. 算法测试（可靠性）
 
-### 3. 算法对比基准（量化）
+**15 个测试全通过**：找路径/无路径/最优性/高效性/平滑/避障。写测试的意义：**算法正确不是"看起来对"，是可回归、可证伪**。
+
+### 3. 量化对比（A\* vs RRT\*）
+
 | 算法 | 路径 | 节点 | 耗时 | 最优性 |
 |---|---|---|---|---|
 | **A\*** | 27步 | 299 | 1.9ms | 最优 |
 | **RRT\*** | 27步 | 179 | 150ms | 渐近最优 |
 
-详见 [results/comparison.md](results/comparison.md)
+耗时差 79 倍：**A\* 用启发式定向搜索，RRT\* 用采样探索空间**——没有好坏，只有取舍。
 
 ### 4. 探索应用（前沿）
-- **动态障碍 RRT\***：3 场景复杂度递增（`results/rrt_dynamic.png`）
-- **性能基准**：A* vs RRT* 量化对比
 
-### 5. MATLAB 科研验证（同一算法多实现对比）
-- 手写 A*（324 节点）+ Navigation Toolbox（plannerAStarGrid）
-- **科研意义**：三种实现（Python/MATLAB/Toolbox）交叉验证
+动态障碍 RRT\*（3 场景复杂度递增）、性能基准。**"会跑通一个 demo"和"能应对变化"是两回事**。
 
-### 6. 巡检导航（TurtleBot3 + Nav2 仿真）
-- ✅ 环境搭建（Gazebo + TurtleBot3 + Nav2）
-- ✅ SLAM 建图流程（Cartographer + 自动移动建图）
-- ✅ Nav2 完整导航（Ubuntu 仿真跑通，自主到达目标点）
+### 5. MATLAB 科研验证（三实现交叉验证）
 
-**仿真验证**（Gazebo 建图 → Nav2 导航全流程，详见 [07-ROS2仿真实战](docs/07-ROS2仿真实战.md)）：
-- 建图结果：![room_map](results/room_map.png)
-- 导航截图：![nav2](results/nav2_navigation.png)
-- 导航视频：[nav_demo.mp4](results/nav_demo.mp4)（75s，1080p）
-- **实测**：`(0.03,-0.84) → (1.5,1.5)` 与 `(1.5,1.5) → (-1.5,-1.5)` 均自主到达 ✅
-- **踩坑收获**：解决 3 处 ROS2 QoS 兼容性（雷达 BEST_EFFORT / 初始位姿订阅）
+手写 A\*（Python）↔ MATLAB 手写 ↔ Navigation Toolbox 三种实现互证。**科研的意义：消除"自己的实现自己的标准"的系统性偏差**。
 
-### 7. 手写算法集成 Nav2 插件（研究验证的最强模式）
+### 6. 仿真验证：Gazebo 建图 → Nav2 导航
 
-> 深度调研（2026-08）确认这是作品集可信度最高的模式，详见 [08-手写算法集成Nav2插件](docs/08-手写算法集成Nav2插件.md)。
+在 Ubuntu 原生环境跑通完整导航链，详见 [07-ROS2仿真实战](docs/07-ROS2仿真实战.md)：
 
-- ✅ 手写 A* 通过 `nav2_core::GlobalPlanner` + pluginlib 成为 **Nav2 官方全局规划器**
-- ✅ 配置即切换：`nav2_astar_params.yaml` 改一行即可切换默认/手写规划器
-- ✅ **实测 158 次规划、96.8% 成功率**，驱动小车跨越迷宫
-- 参考实现：TurtleBot-RRT-Star / nav2_dijkstra_planner 等（调研引用）
+- 建图：![room_map](results/room_map.png)（Cartographer 迷宫地图）
+- 导航：![nav2](results/nav2_navigation.png) · [nav_demo.mp4](results/nav_demo.mp4)
+- **多目标巡检**：`(1.5,1.5) → (-1.5,-1.5) → (1.5,-1.5)` **3/3 到达** · [patrol_demo.mp4](results/patrol_demo.mp4)
 
-### 8. 知识体系（8 篇，算法→体系→应用）
-- 01 基础与体系（导航系统全景）
-- 02 全局规划（A*/RRT 原理与对比）
-- 03 局部规划（DWA 实时避障）
-- 04 SLAM 建图与定位（AMCL）
-- 05 导航闭环（MATLAB vs 实际部署）
-- 06 MATLAB 科研实战（A* 对比详解）
-- 07 ROS2 仿真实战（Gazebo 建图 → Nav2 导航 + QoS 踩坑）
-- 08 手写算法集成 Nav2 插件（A* 全局规划器）
+**踩坑即学习**（3 处 ROS2 QoS 兼容性坑，全解决了）：
+- Gazebo 雷达默认 RELIABLE，Cartographer 订阅 BEST_EFFORT → 收不到数据
+- Nav2 的 AMCL 用 BEST_EFFORT 订阅初始位姿 → 常规发布无效
+- 这些坑文档里都有，是"真跑过系统"的证据
+
+### 7. 手写 A\* 集成 Nav2 全局规划插件 ⭐（亮点）
+
+深度调研（2026-08，104 个子任务）确认：**"手写算法 → Nav2 官方插件"是作品集可信度最高的模式**。详见 [08-手写算法集成Nav2插件](docs/08-手写算法集成Nav2插件.md)。
+
+- 手写 A\* 通过 `nav2_core::GlobalPlanner` + pluginlib 成为 **Nav2 全局规划器**
+- **配置即切换**：改一行 `nav2_astar_params.yaml` 即可切换默认/手写规划器
+- **实测 158 次规划、96.8% 成功率**，驱动小车跨越迷宫 · [astar_nav2_demo.mp4](results/astar_nav2_demo.mp4)
+- 手写 A\* 在真实地图上：路径 3.10m / 规划 3.6ms · ![astar_on_map](results/astar_on_map.png)
+
+> **个人认知**：从"Python 里能跑算法"到"C++ 插件进工业框架"，中间隔着一个"真懂系统"的坎。跨过去，才算真的会导航。
+
+### 8. 知识体系（8 篇）
+
+01 基础与体系 → 02 全局规划 → 03 局部规划 → 04 SLAM定位 → 05 导航闭环 → 06 MATLAB实战 → 07 ROS2仿真实战 → 08 插件集成
 
 ## 🚀 快速开始
 
-**算法演示**（纯 Python，无需 ROS）：
+**纯算法（无需 ROS）**：
 ```bash
 pip install -r requirements.txt
 python algorithms/demo_all_algorithms.py   # 四算法对比可视化
 python -m pytest tests/ -q -p no:anyio     # 15 个测试
 ```
 
-**仿真验证**（Ubuntu 22.04 + ROS2 Humble，详见 [07-ROS2仿真实战](docs/07-ROS2仿真实战.md)）：
+**仿真验证（Ubuntu 22.04 + ROS2 Humble）**：
 ```bash
 ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py                                  # ① Gazebo 世界
-ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=True             # ② Cartographer 建图
-python robot/explore_laser.py 90                                                          # ③ 自动探索（激光避障）
+ros2 launch turtlebot3_cartographer cartographer.launch.py use_sim_time:=True             # ② 建图
+python robot/explore_laser.py 90                                                          # ③ 自动探索
 ros2 run nav2_map_server map_saver_cli -f ~/map/room                                      # ④ 保存地图
-ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=~/map/room.yaml use_sim_time:=True  # ⑤ Nav2 导航
-python robot/nav_goal.py 1.5 1.5                                                          # ⑥ 自主导航到目标
-python robot/nav_goal.py --patrol "1.5,1.5;-1.5,-1.5;1.5,-1.5"                            # ⑦ 多目标巡检
+ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=~/map/room.yaml use_sim_time:=True  # ⑤ 导航
+python robot/nav_goal.py 1.5 1.5                                                          # ⑥ 到目标
+python robot/nav_goal.py --patrol "1.5,1.5;-1.5,-1.5;1.5,-1.5"                            # ⑦ 巡检
 ```
 
-**手写 A\* 作为 Nav2 全局规划器**（详见 [08-手写算法集成Nav2插件](docs/08-手写算法集成Nav2插件.md)）：
+**手写 A\* 作为 Nav2 规划器**：
 ```bash
 cd nav2_astar_plugin && colcon build --packages-select astar_nav2_plugin && source install/setup.bash
 ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=~/map/room.yaml \
-  params_file:=robot/config/nav2_astar_params.yaml use_sim_time:=True                      # 用 A* 插件导航
+  params_file:=robot/config/nav2_astar_params.yaml use_sim_time:=True
 ```
 
 ## 🔄 进行中 / 待完善
 
 - 前沿探索自主建图（frontier-based，接入 Nav2）
-- 局部规划器对比（DWA / TEB / MPPI 在动态障碍场景）
+- 局部规划器对比（DWA / TEB / MPPI 动态障碍）
 - 小车控制板 PCB（硬件分支，见规划）
 
 ## 📚 文档导航
