@@ -26,9 +26,10 @@
 |---|---|
 | **手写算法库** | A\* / RRT\* / Informed RRT\* / DWA（15 测试全通过）|
 | **MATLAB 科研** | 同一算法三实现交叉验证 |
-| **知识体系** | 8 篇（算法→体系→应用）|
+| **知识体系** | 9 篇（算法→体系→应用）|
 | **仿真建图** | Gazebo + Cartographer 建迷宫地图 |
 | **自主导航** | Nav2 多目标巡检 3/3 到达（79s）|
+| **前沿探索建图** | 全自主探索未知迷宫，地图自动生长（30% → 63%）|
 | **A\* Nav2 插件** ⭐ | 手写 A\* 成 Nav2 全局规划器，**158 次规划 96.8% 成功** |
 
 ![四算法对比](results/all_algorithms.png)
@@ -129,9 +130,9 @@ result = plan(planner, start, goal)  # 统一调用
 
 > **个人认知**：从"Python 里能跑算法"到"C++ 插件进工业框架"，中间隔着一个"真懂系统"的坎。跨过去，才算真的会导航。
 
-### 8. 知识体系（8 篇）
+### 8. 知识体系（9 篇）
 
-01 基础与体系 → 02 全局规划 → 03 局部规划 → 04 SLAM定位 → 05 导航闭环 → 06 MATLAB实战 → 07 ROS2仿真实战 → 08 插件集成
+01 基础与体系 → 02 全局规划 → 03 局部规划 → 04 SLAM定位 → 05 导航闭环 → 06 MATLAB实战 → 07 ROS2仿真实战 → 08 插件集成 → 09 前沿探索
 
 ## 🚀 快速开始
 
@@ -162,8 +163,8 @@ ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=~/map/room.yaml \
 
 ## 🔄 进行中 / 待完善
 
-- 前沿探索自主建图（frontier-based，接入 Nav2）
-- 局部规划器对比（DWA / TEB / MPPI 动态障碍）
+- 局部规划器对比（DWA / MPPI / Regulated Pure Pursuit）
+- 前沿探索覆盖率提升（更优的前沿选择策略）
 - 小车控制板 PCB（硬件分支，见规划）
 
 ## 📚 文档导航
@@ -178,6 +179,7 @@ ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=~/map/room.yaml \
 | [06-MATLAB科研验证实战](docs/06-MATLAB科研验证实战.md) | A\* 对比详解 |
 | [07-ROS2仿真实战](docs/07-ROS2仿真实战.md) | Gazebo 建图 → Nav2 导航 |
 | [08-手写算法集成Nav2插件](docs/08-手写算法集成Nav2插件.md) | A\* 全局规划器插件化 |
+| [09-前沿探索自主建图](docs/09-前沿探索自主建图.md) | 全自主探索未知环境 |
 | [算法对比基准](results/comparison.md) | 手写算法 vs Nav2 量化对比 |
 
 ## License

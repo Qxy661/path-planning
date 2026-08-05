@@ -100,7 +100,10 @@ std::vector<unsigned int> AstarPlanner::a_star_search(
       }
       const unsigned int nidx = to_index(nx, ny);
       if (closed[nidx]) { continue; }
-      if (costmap_->getCost(nx, ny) > lethal_threshold_) { continue; }
+      const unsigned char cell_cost = costmap_->getCost(nx, ny);
+      // 障碍判定：代价 > 阈值 且 非未知格(255)
+      // 未知格视为可通行（allow_unknown，支持自主探索穿越未知区域）
+      if (cell_cost > lethal_threshold_ && cell_cost != 255) { continue; }
 
       const double move_cost = (dx[k] != 0 && dy[k] != 0) ? 1.41421356 : 1.0;
       const double ng = g_cost[idx] + move_cost;
