@@ -13,5 +13,7 @@ log/
 
 # 地图/环境临时
 *.pgm
-*.yaml
+room.yaml
+map/*.yaml
+simulation/*.yaml
 *~
